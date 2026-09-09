@@ -26,11 +26,11 @@ export function Hero() {
           <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-full overflow-hidden border-2 border-[#9C4328]/40 shadow-xl shadow-[#1A1817]/8 relative p-1 bg-white">
             <div className="w-full h-full rounded-full overflow-hidden relative">
               <Image
-                src="/images/muskan-sharma.jpg"
+                src="/images/muskan-sharma.png"
                 alt="Muskan Sharma - Product Consultant"
                 fill
                 priority
-                className="object-cover object-[center_12%] scale-105 -translate-y-0.5 group-hover:scale-110 transition-transform duration-500 ease-out"
+                className="object-cover object-[center_15%] group-hover:scale-105 transition-transform duration-500 ease-out"
                 sizes="(max-width: 768px) 144px, 160px"
               />
             </div>
