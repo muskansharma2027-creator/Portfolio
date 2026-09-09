@@ -9,13 +9,17 @@ import { SelectedWork } from '@/components/portfolio/selected-work';
 import { ContactFooter } from '@/components/portfolio/contact-footer';
 
 export default function WorkPage() {
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#FAF8F5] text-[#1A1817] selection:bg-[#F8E7DF] selection:text-[#83351E] relative">
       <GodCursor />
       <div className="hero-grid-bg fixed inset-0 opacity-70 pointer-events-none z-0" aria-hidden="true" />
       <Navbar />
 
-      <main className="relative z-10 pt-28 pb-16">
+      <main className="relative z-10 pt-28 pb-16 animate-page-entrance">
         {/* Page Hero Header */}
         <div className="max-w-6xl mx-auto px-4 sm:px-6 mb-12">
           {/* Breadcrumbs */}

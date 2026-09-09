@@ -19,7 +19,6 @@
   }
 
   html {
-    scroll-behavior: smooth;
     color-scheme: light;
     background-color: var(--color-bg);
   }
@@ -38,6 +37,22 @@
     background-color: #F8E7DF;
     color: #83351E;
   }
+}
+
+/* Crisp Editorial Page Transition Animation */
+@keyframes pageEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-page-entrance {
+  animation: pageEntrance 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Subtle Geometric Linen Grid Background (Warm Luxury Editorial) */

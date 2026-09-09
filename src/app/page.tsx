@@ -9,8 +9,12 @@ import { PORTFOLIO_DATA } from '@/data/portfolio-data';
 export default function Home() {
   const { personal } = PORTFOLIO_DATA;
 
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-[#FAF8F5] text-[#1A1817] selection:bg-[#F8E7DF] selection:text-[#83351E] relative flex flex-col justify-between">
+    <div className="min-h-screen bg-[#FAF8F5] text-[#1A1817] selection:bg-[#F8E7DF] selection:text-[#83351E] relative flex flex-col justify-between animate-page-entrance">
       {/* Precision High-Visibility Cursor */}
       <GodCursor />
 
@@ -23,7 +27,7 @@ export default function Home() {
       {/* Persistent Top Capsule Navigation */}
       <Navbar />
 
-      {/* Focused Home Intro: Portrait, Verified Positioning & Interactive Radial Navigation Hub */}
+      {/* Focused Home Intro: Portrait, Positioning & Interactive Radial Navigation Hub */}
       <main className="relative z-10 flex-1 flex flex-col justify-center">
         <Hero />
       </main>
