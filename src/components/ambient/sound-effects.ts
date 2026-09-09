@@ -1,0 +1,128 @@
+"use client";
+
+// Client-side Web Audio API micro-sound generator
+// Synthesizes pleasant tactile clicks and pops with zero external asset dependencies
+
+let audioCtx: AudioContext | null = null;
+let soundMuted = false;
+
+function getAudioContext(): AudioContext | null {
+  if (typeof window === "undefined") return null;
+  if (!audioCtx) {
+    const AudioContextClass =
+      window.AudioContext ||
+      // @ts-expect-error webkitAudioContext support for older browsers
+      window.webkitAudioContext;
+    if (AudioContextClass) {
+      audioCtx = new AudioContextClass();
+    }
+  }
+  if (audioCtx && audioCtx.state === "suspended") {
+    audioCtx.resume();
+  }
+  return audioCtx;
+}
+
+export function isSoundMuted(): boolean {
+  if (typeof window === "undefined") return false;
+  const stored = localStorage.getItem("portfolio_sound_muted");
+  return stored !== null ? stored === "true" : soundMuted;
+}
+
+export function toggleSoundState(): boolean {
+  const current = isSoundMuted();
+  const next = !current;
+  soundMuted = next;
+  if (typeof window !== "undefined") {
+    localStorage.setItem("portfolio_sound_muted", String(next));
+  }
+  return next;
+}
+
+export function playTactileClick() {
+  if (isSoundMuted()) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  try {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(800, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.04);
+
+    gain.gain.setValueAtTime(0.06, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start();
+    osc.stop(ctx.currentTime + 0.045);
+  } catch {
+    // Audio contexts can fail gracefully on un-interacted documents
+  }
+}
+
+export function playSuccessChime() {
+  if (isSoundMuted()) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  try {
+    const now = ctx.currentTime;
+
+    // Note 1 (523.25 Hz - C5)
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = "sine";
+    osc1.frequency.setValueAtTime(523.25, now);
+    gain1.gain.setValueAtTime(0.08, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start(now);
+    osc1.stop(now + 0.16);
+
+    // Note 2 (659.25 Hz - E5)
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = "sine";
+    osc2.frequency.setValueAtTime(659.25, now + 0.08);
+    gain2.gain.setValueAtTime(0.08, now + 0.08);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.start(now + 0.08);
+    osc2.stop(now + 0.29);
+  } catch {
+    // Graceful fallback
+  }
+}
+
+export function playNotePop() {
+  if (isSoundMuted()) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  try {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = "triangle";
+    osc.frequency.setValueAtTime(450, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(950, ctx.currentTime + 0.05);
+
+    gain.gain.setValueAtTime(0.05, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start();
+    osc.stop(ctx.currentTime + 0.055);
+  } catch {
+    // Graceful fallback
+  }
+}
