@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { PORTFOLIO_DATA } from "@/data/portfolio-data";
+import { GodCursor } from "@/components/portfolio/god-cursor";
 
 export const viewport: Viewport = {
   themeColor: "#f8f9fa",
@@ -92,6 +93,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen bg-[#FAF8F5] text-[#1A1817] selection:bg-[#F8E7DF] selection:text-[#83351E] antialiased relative">
+        <GodCursor />
         {children}
       </body>
     </html>

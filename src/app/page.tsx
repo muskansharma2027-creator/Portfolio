@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { GodCursor } from '@/components/portfolio/god-cursor';
 import { Navbar } from '@/components/portfolio/navbar';
 import { Hero } from '@/components/portfolio/hero';
 import { PORTFOLIO_DATA } from '@/data/portfolio-data';
@@ -15,8 +14,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#FAF8F5] text-[#1A1817] selection:bg-[#F8E7DF] selection:text-[#83351E] relative flex flex-col justify-between animate-page-entrance">
-      {/* Precision High-Visibility Cursor */}
-      <GodCursor />
 
       {/* Subtle Geometric Linen Grid Background */}
       <div

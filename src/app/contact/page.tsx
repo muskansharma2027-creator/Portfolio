@@ -2,7 +2,6 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { GodCursor } from '@/components/portfolio/god-cursor';
 import { Navbar } from '@/components/portfolio/navbar';
 import { ContactFooter } from '@/components/portfolio/contact-footer';
 
@@ -13,7 +12,6 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-[#FAF8F5] text-[#1A1817] selection:bg-[#F8E7DF] selection:text-[#83351E] relative flex flex-col justify-between">
-      <GodCursor />
       <div className="hero-grid-bg fixed inset-0 opacity-70 pointer-events-none z-0" aria-hidden="true" />
       <Navbar />
 

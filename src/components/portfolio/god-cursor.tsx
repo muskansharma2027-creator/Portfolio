@@ -11,14 +11,17 @@ export function GodCursor() {
   const [cursorState, setCursorState] = useState<{
     hovered: boolean;
     label: string | null;
-  }>({ hovered: false, label: null });
+    isInput: boolean;
+  }>({ hovered: false, label: null, isInput: false });
+
+  // Ref to track state changes and avoid triggering React re-renders on mousemove
+  const stateRef = useRef({ hovered: false, label: null as string | null, isInput: false });
 
   useEffect(() => {
     // Disable on touch / mobile devices
     const isTouch = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
     if (isTouch) return;
 
-    // Reduced motion check
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     let mouseX = -100;
@@ -29,36 +32,57 @@ export function GodCursor() {
     let animId: number;
 
     const onMouseMove = (e: MouseEvent) => {
-      mouseX = e.clientX;
-      mouseY = e.clientY;
+      const clientX = e.clientX;
+      const clientY = e.clientY;
+
+      mouseX = clientX;
+      mouseY = clientY;
+
+      // On first mouse move, sync ring immediately to prevent flying across screen from (-100, -100)
       if (!isMoving) {
         isMoving = true;
+        ringX = clientX;
+        ringY = clientY;
+        document.documentElement.classList.add('has-custom-cursor');
         setVisible(true);
+        if (ringRef.current) {
+          ringRef.current.style.transform = `translate3d(${clientX}px, ${clientY}px, 0) translate(-50%, -50%)`;
+        }
       }
 
-      // Check target for custom cursor state
+      // Synchronously update precision dot with ZERO latency and hardware alignment
+      if (cursorRef.current) {
+        cursorRef.current.style.transform = `translate3d(${clientX}px, ${clientY}px, 0) translate(-50%, -50%)`;
+      }
+
+      // Check target for custom cursor state without creating new objects unless state changed
       const target = e.target as HTMLElement | null;
       if (target) {
-        const interactiveEl = target.closest('a, button, [data-cursor]');
-        if (interactiveEl) {
-          const cursorAttr = interactiveEl.getAttribute('data-cursor');
-          if (cursorAttr && cursorAttr !== 'interactive') {
-            setCursorState({ hovered: true, label: cursorAttr.toUpperCase() });
-          } else {
-            setCursorState({ hovered: true, label: null });
-          }
-        } else {
-          setCursorState({ hovered: false, label: null });
+        const isInput = Boolean(target.closest('input, textarea, select, [contenteditable="true"]'));
+        const interactiveEl = target.closest('a, button, [data-cursor], [role="button"]');
+        const cursorAttr = interactiveEl?.getAttribute('data-cursor');
+        const nextLabel = cursorAttr && cursorAttr !== 'interactive' ? cursorAttr.toUpperCase() : null;
+        const nextHovered = Boolean(interactiveEl) && !isInput;
+
+        if (
+          stateRef.current.hovered !== nextHovered ||
+          stateRef.current.label !== nextLabel ||
+          stateRef.current.isInput !== isInput
+        ) {
+          stateRef.current = { hovered: nextHovered, label: nextLabel, isInput };
+          setCursorState({ hovered: nextHovered, label: nextLabel, isInput });
         }
       }
     };
 
     const onMouseLeave = () => {
       setVisible(false);
+      document.documentElement.classList.remove('has-custom-cursor');
     };
 
     const onMouseEnter = () => {
       setVisible(true);
+      document.documentElement.classList.add('has-custom-cursor');
     };
 
     window.addEventListener('mousemove', onMouseMove, { passive: true });
@@ -69,7 +93,7 @@ export function GodCursor() {
 
     const render = () => {
       if (cursorRef.current) {
-        cursorRef.current.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
+        cursorRef.current.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0) translate(-50%, -50%)`;
       }
 
       if (ringRef.current) {
@@ -77,10 +101,11 @@ export function GodCursor() {
           ringX = mouseX;
           ringY = mouseY;
         } else {
-          ringX = lerp(ringX, mouseX, 0.18);
-          ringY = lerp(ringY, mouseY, 0.18);
+          // Snappy, elastic 0.35 lerp factor - responsive and tightly tethered
+          ringX = lerp(ringX, mouseX, 0.35);
+          ringY = lerp(ringY, mouseY, 0.35);
         }
-        ringRef.current.style.transform = `translate3d(${ringX}px, ${ringY}px, 0)`;
+        ringRef.current.style.transform = `translate3d(${ringX}px, ${ringY}px, 0) translate(-50%, -50%)`;
       }
 
       animId = requestAnimationFrame(render);
@@ -89,6 +114,7 @@ export function GodCursor() {
     animId = requestAnimationFrame(render);
 
     return () => {
+      document.documentElement.classList.remove('has-custom-cursor');
       window.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseleave', onMouseLeave);
       document.removeEventListener('mouseenter', onMouseEnter);
@@ -96,25 +122,30 @@ export function GodCursor() {
     };
   }, []);
 
-  if (!visible) return null;
-
   const hasLabel = Boolean(cursorState.label);
+  const isHidden = !visible || cursorState.isInput;
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-[99999] overflow-hidden" aria-hidden="true">
-      {/* Central Solid High-Visibility Precision Dot */}
+    <div
+      className="fixed inset-0 pointer-events-none z-[99999] overflow-hidden transition-opacity duration-150"
+      style={{ opacity: isHidden ? 0 : 1 }}
+      aria-hidden="true"
+    >
+      {/* Central Solid High-Visibility Precision Dot (0ms latency, no transform transition) */}
       <div
         ref={cursorRef}
-        className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[#1A1817] transition-all duration-150 shadow-[0_0_8px_rgba(156,67,40,0.45)]"
+        className="absolute top-0 left-0 w-2 h-2 rounded-full bg-[#1A1817] shadow-[0_0_8px_rgba(156,67,40,0.45)]"
         style={{
           opacity: hasLabel ? 0 : 1,
+          willChange: 'transform',
+          transition: 'opacity 0.15s ease',
         }}
       />
 
-      {/* Outer High-Visibility Fluid Follower Ring */}
+      {/* Outer High-Visibility Fluid Follower Ring (transitions styling ONLY, never transform) */}
       <div
         ref={ringRef}
-        className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center transition-[width,height,border-radius,background-color,border-color,box-shadow] duration-200 ease-out"
+        className="absolute top-0 left-0 flex items-center justify-center pointer-events-none"
         style={{
           width: hasLabel ? '88px' : cursorState.hovered ? '52px' : '30px',
           height: hasLabel ? '32px' : cursorState.hovered ? '52px' : '30px',
@@ -132,6 +163,9 @@ export function GodCursor() {
           boxShadow: cursorState.hovered
             ? '0 0 20px rgba(156, 67, 40, 0.35), 0 4px 12px rgba(0, 0, 0, 0.08)'
             : '0 1px 4px rgba(0, 0, 0, 0.06)',
+          willChange: 'transform',
+          transition:
+            'width 0.22s cubic-bezier(0.16, 1, 0.3, 1), height 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.22s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease',
         }}
       >
         {hasLabel && (
