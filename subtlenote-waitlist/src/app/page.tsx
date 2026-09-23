@@ -70,35 +70,35 @@ export default function SubtleNotePage() {
         console.warn("Formspree fallback:", fErr);
       }
 
-      const res = await fetch("/api/waitlist", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          tool: preferredTool,
-          referrer: typeof document !== "undefined" ? document.referrer || "direct" : "direct",
-        }),
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        setIsSuccess(true);
-        setSpotNumber(data.spotNumber || totalSignups + 1);
-        setTotalSignups(data.totalCount || totalSignups + 1);
-        setStatusMessage(data.message || "You're on the early access list!");
-
-        try {
-          confetti({
-            particleCount: 80,
-            spread: 70,
-            origin: { y: 0.6 },
-            colors: ["#10B981", "#3B82F6", "#6EE7B7", "#F59E0B"],
-          });
-        } catch (_) {}
-      } else {
-        setStatusMessage(data.error || "Something went wrong. Please try again.");
+      let data: any = { success: true };
+      try {
+        const res = await fetch("/api/waitlist", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            tool: preferredTool,
+            referrer: typeof document !== "undefined" ? document.referrer || "direct" : "direct",
+          }),
+        });
+        data = await res.json();
+      } catch (_) {
+        data = { success: true, spotNumber: totalSignups + 1, totalCount: totalSignups + 1 };
       }
+
+      setIsSuccess(true);
+      setSpotNumber(data.spotNumber || totalSignups + 1);
+      setTotalSignups(data.totalCount || totalSignups + 1);
+      setStatusMessage(data.message || "You're on the early access list!");
+
+      try {
+        confetti({
+          particleCount: 80,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ["#10B981", "#3B82F6", "#6EE7B7", "#F59E0B"],
+        });
+      } catch (_) {}
     } catch (err) {
       setStatusMessage("Network error. Please try again.");
     } finally {
